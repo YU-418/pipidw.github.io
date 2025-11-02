@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>满屏飘字 - 对你的思念不止于此</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            overflow: hidden;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        /* 基础浮动动画 */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        /* 文字元素样式 */
+        .floating-text {
+            position: absolute;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5),
+                         0 0 20px rgba(255, 255, 255, 0.3),
+                         0 0 30px rgba(255, 255, 255, 0.2);
+            opacity: 0;
+            animation: float 4s ease-in-out infinite;
+            cursor: default;
+            user-select: none;
+            transition: opacity 1s ease, transform 0.3s ease;
+        }
+
+        /* 彩虹文字特效 */
+        .rainbow {
+            animation: rainbow 8s infinite linear;
+        }
+
+        @keyframes rainbow {
+            0% { color: #ff6b6b; }
+            20% { color: #ffd93d; }
+            40% { color: #6bcf7f; }
+            60% { color: #4d96ff; }
+            80% { color: #c779d0; }
+            100% { color: #ff6b6b; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 文字容器 -->
+    <div id="textContainer"></div>
+
+    <script>
+        // 可自定义的配置
+        const config = {
+            texts: [ // 要显示的文字内容
+                "我想你了",
+                "你好呀",
+                "今天过得怎么样？",
+                "代码与爱，皆不可负",
+                "愿你被世界温柔以待",
+                "山河远阔，人间烟火",
+                "你是我藏在微风中的欢喜",
+                "今夜月色真美",
+                "余生请多指教",
+                "春风十里，不如你",
+                "执子之手，与子偕老",
+                "你是我的全世界",
+                "爱你哟",
+                "一切尽在不言中",
+                "相遇是缘，相识是份"
+            ],
+            colors: [ // 文字颜色
+                "#ff6b6b", "#ffd93d", "#6bcf7f", "#4d96ff", 
+                "#c779d0", "#ff9ff3", "#feca57", "#48dbfb",
+                "#ff9ff3", "#54a0ff"
+            ],
+            totalTexts: 50, // 同时显示的文字数量
+            floatSpeed: { min: 3, max: 8 }, // 浮动速度范围（秒）
+            enableClick: true // 是否启用点击交互
+        };
+
+        // 创建文字元素
+        function createFloatingTexts() {
+            const container = document.getElementById('textContainer');
+            
+            for (let i = 0; i < config.totalTexts; i++) {
+                setTimeout(() => {
+                    createTextElement(container);
+                }, i * 300); // 错开创建时间
+            }
+        }
+
+        // 创建单个文字元素
+        function createTextElement(container) {
+            const textElement = document.createElement('div');
+            textElement.className = 'floating-text';
+            
+            // 随机选择文字和颜色
+            const randomText = config.texts[Math.floor(Math.random() * config.texts.length)];
+            const randomColor = config.colors[Math.floor(Math.random() * config.colors.length)];
+            
+            textElement.textContent = randomText;
+            textElement.style.color = randomColor;
+            
+            // 随机位置
+            const posX = Math.random() * (window.innerWidth - 100);
+            const posY = Math.random() * (window.innerHeight - 50);
+            
+            textElement.style.left = `${posX}px`;
+            textElement.style.top = `${posY}px`;
+            
+            // 随机动画参数
+            const animationDelay = Math.random() * 5;
+            const animationDuration = config.floatSpeed.min + Math.random() * (config.floatSpeed.max - config.floatSpeed.min);
+            
+            textElement.style.animationDelay = `${animationDelay}s`;
+            textElement.style.animationDuration = `${animationDuration}s`;
+            
+            // 随机大小
+            const randomSize = 16 + Math.random() * 20;
+            textElement.style.fontSize = `${randomSize}px`;
+            
+            // 随机添加彩虹效果
+            if (Math.random() > 0.7) {
+                textElement.classList.add('rainbow');
+            }
+            
+            container.appendChild(textElement);
+            
+            // 淡入效果
+            setTimeout(() => {
+                textElement.style.opacity = '0.8';
+            }, 100);
+            
+            // 点击交互
+            if (config.enableClick) {
+                textElement.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.5) rotate(10deg)';
+                    this.style.opacity = '0';
+                    setTimeout(() => {
+                        if (this.parentNode) {
+                            this.parentNode.removeChild(this);
+                        }
+                        createTextElement(container); // 创建新的文字替代
+                    }, 500);
+                });
+            }
+            
+            // 自动重新生成（当文字移出视口时）
+            const checkPosition = setInterval(() => {
+                const rect = textElement.getBoundingClientRect();
+                if (rect.top > window.innerHeight || rect.bottom < 0 || 
+                    rect.left > window.innerWidth || rect.right < 0) {
+                    clearInterval(checkPosition);
+                    if (textElement.parentNode) {
+                        textElement.parentNode.removeChild(textElement);
+                    }
+                    createTextElement(container);
+                }
+            }, 2000);
+        }
+
+        // 窗口大小变化时重新调整
+        window.addEventListener('resize', function() {
+            const container = document.getElementById('textContainer');
+            container.innerHTML = '';
+            createFloatingTexts();
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', createFloatingTexts);
+    </script>
+</body>
+</html>
